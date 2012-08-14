@@ -528,7 +528,7 @@ class MashTask(Thread):
             if comps_url.startswith('git://'):
                 cmd = 'git clone %s' % (comps_url,)
             else:
-                cmd = 'cvs -d %s co comps' % (comps_url,)
+                log.error("Only git is supported for comps now")
             log.debug("running command: %s" % cmd)
             subprocess.call(cmd, shell=True, cwd=comps_dir)
         if comps_url.startswith('git://'):
@@ -541,7 +541,7 @@ class MashTask(Thread):
             if err:
                 log.error(err)
         else:
-            subprocess.call('cvs update', shell=True, cwd=comps_dir)
+            log.error("Only git is supported for comps now")
 
         log.info('Merging translations')
         p = subprocess.Popen('make', shell=True, cwd=comps_dir,
