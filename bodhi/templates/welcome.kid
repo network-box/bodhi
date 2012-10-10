@@ -20,9 +20,9 @@ koji_url = config.get('koji_url')
             <tr>
                 <td align="left">
                     <ul style="list-style:none;">
-                        <li><a href="https://fedoraproject.org/wiki/QA:Update_feedback_guidelines"><img src="${tg.url('/static/images/hardhat.png')}" border="0" height="18" width="18"/> Update feedback guidelines</a></li>
+                        <li><a href="https://intranet.network-box.com/wiki/index.php/Update_feedback_guidelines"><img src="${tg.url('/static/images/hardhat.png')}" border="0" height="18" width="18"/> Update feedback guidelines</a></li>
                         <li><a href="https://fedoraproject.org/wiki/Bodhi"><img src="${tg.url('/static/images/info.png')}" border="0" height="18" width="18"/> Bodhi guide</a></li>
-                        <li><a href="http://fedoraproject.org/wiki/PackageMaintainers/UpdatingPackageHowTo"><img src="${tg.url('/static/images/header-faq.png')}" border="0" height="18" width="18"/> Updating packages howto</a></li>
+                        <li><a href="https://intranet.network-box.com/wiki/index.php/Package_update_SOP"><img src="${tg.url('/static/images/header-faq.png')}" border="0" height="18" width="18"/> Updating packages howto</a></li>
                     </ul>
                 </td>
                 <td align="left">

@@ -193,7 +193,7 @@ for more than 2 weeks if you deem it necessary.
 You can submit this update to be pushed to the stable repository by going to
 the following URL:
 
-    https://admin.fedoraproject.org/updates/request/stable/%(package)s
+    https://bodhi.network-box.com/updates/request/stable/%(package)s
 
 or by running the following command with the bodhi-client:
 
@@ -230,7 +230,7 @@ The critical path update for %(package)s has been in 'testing' status for over
 To approve this update and request that it be pushed to stable, you can use 
 the link below:
 
-    https://admin.fedoraproject.org/updates/approve/%(package)s
+    https://bodhi.network-box.com/updates/approve/%(package)s
 """,
         'fields'  : lambda x: {
                         'package'   : x.title,
@@ -258,7 +258,7 @@ The Critical Path update `%(package)s` has been approved.
 
     Notes: %(notes)s
 
-    https://admin.fedoraproject.org/updates/overrides
+    https://bodhi.network-box.com/updates/overrides
 
 """,
         'fields'  : lambda x: {

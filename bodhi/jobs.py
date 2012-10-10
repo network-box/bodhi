@@ -178,7 +178,7 @@ def approve_testing_updates():
     Scan all testing updates and approve ones that have met the per-release
     testing requirements.
 
-    https://fedoraproject.org/wiki/Package_update_acceptance_criteria
+    https://intranet.network-box.com/wiki/index.php/Package_update_acceptance_criteria
     """
     log.info('Running approve_testing_updates job...')
     for update in PackageUpdate.select(

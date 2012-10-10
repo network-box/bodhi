@@ -20,7 +20,7 @@ statuses = ('stable', 'testing', 'pending', 'obsolete')
 types = ('bugfix', 'enhancement', 'security', 'newpackage')
 
 def short_url(update):
-    return 'https://admin.fedoraproject.org/updates/%s' % update.builds[0].nvr
+    return 'https://bodhi.network-box.com/updates/%s' % update.builds[0].nvr
 
 def main():
     load_config()
