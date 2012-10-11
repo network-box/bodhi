@@ -12,9 +12,9 @@
 
 <body onload="document.login.user_name.focus()">
     <div class="padded">
-        <h1>Fedora Update System</h1>
+        <h1>Network Box Update System</h1>
         <p>${message}</p>
-        <p>Hint: Use your Fedora username, not your e-mail address.</p> 
+        <p>Hint: Use your Network Box username, not your e-mail address.</p> 
     </div>
     <form action="${previous_url}" method="POST" name="login">
         <table class="login">

@@ -3,7 +3,7 @@
     py:extends="'master.kid'">
 <head>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
-    <title>Fedora Update Requests</title>
+    <title>Network Box Update Requests</title>
     <script type="text/javascript" charset="utf-8" src="${tg.url('/static/js/jquery.checkboxes.js')}"></script>
 </head>
 

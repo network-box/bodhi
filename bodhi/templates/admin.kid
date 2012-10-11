@@ -5,7 +5,7 @@
 
 <head>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
-        <title>Fedora Updates // Administration</title>
+        <title>Network Box Updates // Administration</title>
 </head>
 
 <body>

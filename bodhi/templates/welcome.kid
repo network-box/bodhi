@@ -4,7 +4,7 @@
 <?python from bodhi import version, hostname ?>
 <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
-    <title>Fedora Update System</title>
+    <title>Network Box Update System</title>
     <link media="all" href="${tg.url('/tg_widgets/turbogears.widgets/grid.css')}" type="text/css" rel="stylesheet"/>
 
 </head>

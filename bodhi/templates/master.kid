@@ -51,7 +51,8 @@ $(document).ready(function() {
     <!-- header BEGIN -->
     <div id="fedora-header">
         <div id="fedora-header-logo">
-            <a href="${tg.url('/')}"><img src="${tg.url('/static/images/header-fedora_logo.png')}" /></a>
+            <a href="${tg.url('/')}"><img height="40px" src="${tg.url('/static/images/header-fedora_logo.png')}" /></a>
+
             <span py:if="config.get('deployment_type', 'dev')=='dev'">
                 <b>DEVELOPMENT INSTANCE</b>
             </span>
@@ -158,8 +159,7 @@ $(document).ready(function() {
         Bodhi Version: ${version} -- Server: ${hostname}<br/>
         Copyright &copy; 2007-2011 Red Hat, Inc. and others.<br/>
         Licensed under the GNU General Public License v2 or later.<br />
-        The Fedora Project is maintained and driven by the community and sponsored by Red Hat.<br/>This is a community maintained site.  Red Hat is not responsible for content.<br/>
-        [ <a href="https://fedoraproject.org/wiki/Legal">Legal</a>, <a href="https://fedoraproject.org/wiki/Legal/TrademarkGuidelines">Trademark Guidelines</a>, <a href="https://fedorahosted.org/bodhi">Source Code</a> ]
+        [ <a href="https://fedorahosted.org/bodhi">Upstream Source Code</a>, <a href="https://gitorious.org/bochecha-dayjob/bodhi/">Network Box specific modifications</a> ]
     </div>
     <!-- footer END -->
 

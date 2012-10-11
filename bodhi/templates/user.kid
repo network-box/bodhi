@@ -13,7 +13,7 @@ from bodhi.model import Release, PackageUpdate, Releases
     </link>
     <!-- Feed for all updates by one user -->
     <link href="${tg.url('/rss/rss2.0?submitter=%s' % (username))}" rel="alternate" type="application/rss+xml" title="${'All updates submitted by %s' % (username)}" />
-    <title>Fedora Updates</title>
+    <title>Network Box Updates</title>
 </head>
 
 <body>

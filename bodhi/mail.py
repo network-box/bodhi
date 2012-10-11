@@ -482,7 +482,7 @@ def send(to, msg_type, update, sender=None):
             headers["In-Reply-To"] = initial_message_id
 
     for person in to:
-        send_mail(sender, person, '[Fedora Update] %s[%s] %s' % (
+        send_mail(sender, person, '[Network Box Update] %s[%s] %s' % (
                   critpath, msg_type, title),
                   messages[msg_type]['body'] %
                   messages[msg_type]['fields'](update),
