@@ -84,35 +84,23 @@ class Release(SQLObject):
 
     @property
     def candidate_tag(self):
-        if self.name.startswith('EL'): # EPEL Hack.
-            return '%s-testing-candidate' % self.dist_tag
-        else:
-            return '%s-updates-candidate' % self.dist_tag
+        return '%s-candidates' % self.stable_tag
 
     @property
     def testing_tag(self):
-        if self.locked:
-            return '%s-updates-testing' % self.stable_tag
         return '%s-testing' % self.stable_tag
 
     @property
     def stable_tag(self):
-        if self.locked:
-            return self.dist_tag
-        if self.name.startswith('EL'): # EPEL Hack.
-            return self.dist_tag
-        else:
-            return '%s-updates' % self.dist_tag
+        return self.dist_tag
 
     @property
     def pending_testing_tag(self):
-        return self.testing_tag + '-pending'
+        return '%s-pending' % self.testing_tag
 
     @property
     def pending_stable_tag(self):
-        if self.locked:
-            return '%s-updates-pending' % self.dist_tag
-        return self.stable_tag + '-pending'
+        return '%s-pending' % self.stable_tag
 
     @property
     def override_tag(self):
@@ -120,19 +108,11 @@ class Release(SQLObject):
 
     @property
     def stable_repo(self):
-        id = self.name.replace('-', '').lower()
-        if self.name.startswith('EL'): # EPEL Hack.
-            return '%s-epel' % id
-        else:
-            return '%s-updates' % id
+        return self.stable_tag
 
     @property
     def testing_repo(self):
-        id = self.name.replace('-', '').lower()
-        if self.name.startswith('EL'):
-            return '%s-epel-testing' % id
-        else:
-            return '%s-updates-testing' % id
+        return self.testing_tag
 
     @property
     def mandatory_days_in_testing(self):
