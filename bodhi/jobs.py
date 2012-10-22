@@ -312,13 +312,14 @@ def schedule():
 
     # Approve updates that have been in testing for a certain amount of time
     if 'approve_testing_updates' in jobs:
-        log.debug("Scheduling approve_testing_updates job")
-        scheduler.add_interval_task(action=approve_testing_updates,
-                                   # Run every 6 hours
-                                   initialdelay=21600,
-                                   interval=21600)
-                                   #weekdays=range(1,8),
-                                   #timeonday=(0,0))
+        log.warning("Not scheduling approve_testing_updates job.\nThis is "
+                    "supposed to send nagmails when an update has spent enough"
+                    " time in\ntesting. However, our update policy does not "
+                    "care about the amount of time an\nupdate has spent in "
+                    "testing: each update MUST be manually approved by a "
+                    "human.\nAs such, a daily nagmails that all update have "
+                    "spent the required (0) days in\ntesting would be both "
+                    "useless and infuriating.")
 
     # Automatically expire buildroot overrides
     if 'expire_buildroot_overrides' in jobs:

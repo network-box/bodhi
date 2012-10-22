@@ -1245,23 +1245,9 @@ class PackageUpdate(SQLObject):
         If this release does not have a mandatory testing requirement, then
         simply return True.
         """
-        if self.critpath:
-            # Ensure there is no negative karma. We're looking at the sum of
-            # each users karma for this update, which takes into account
-            # changed votes.
-            feedback = defaultdict(int)
-            for comment in self.comments:
-                if not comment.anonymous:
-                    feedback[comment.author] += comment.karma
-            for karma in feedback.values():
-                if karma < 0:
-                    return False
-            num_days = config.get('critpath.stable_after_days_without_negative_karma')
-            return self.days_in_testing >= num_days
-        num_days = self.release.mandatory_days_in_testing
-        if not num_days:
-            return True
-        return self.days_in_testing >= num_days
+        # [NBRS - POLICY - DAYS_IN_TESTING]
+        # We don't want to enforce a minimum number of days in testing
+        return True
 
     @property
     def met_testing_requirements(self):
@@ -1272,20 +1258,9 @@ class PackageUpdate(SQLObject):
         If this release does not have a mandatory testing requirement, then
         simply return True.
         """
-        min_num_days = self.release.mandatory_days_in_testing
-        num_days = self.days_in_testing
-        if min_num_days:
-            if num_days < min_num_days:
-                return False
-        else:
-            return True
-        for comment in self.comments:
-            if comment.author == 'bodhi' and \
-               comment.text.startswith('This update has reached') and \
-               comment.text.endswith('days in testing and can be pushed to'
-                                     ' stable now if the maintainer wishes'):
-                return True
-        return False
+        # [NBRS - POLICY - DAYS_IN_TESTING]
+        # We don't want to enforce a minimum number of days in testing
+        return True
 
     def expire_buildroot_overrides(self):
         """ Obsolete any buildroot overrides from this update """
