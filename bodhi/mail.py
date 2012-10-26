@@ -270,9 +270,9 @@ The Critical Path update `%(package)s` has been approved.
     },
 }
 
-fedora_errata_template = u"""\
+nbrs_free_errata_template = u"""\
 --------------------------------------------------------------------------------
-Fedora%(testing)s Update Notification
+NBRS%(testing)s Update Notification
 %(updateid)s
 %(date)s
 --------------------------------------------------------------------------------
@@ -288,45 +288,13 @@ Description :
 
 --------------------------------------------------------------------------------
 %(notes)s%(changelog)s%(references)s
-This update can be installed with the "yum" update program.  Use 
-su -c 'yum%(yum_repository)s update %(name)s' at the command line.
-For more information, refer to "Managing Software with yum",
-available at http://docs.fedoraproject.org/yum/.
-
-All packages are signed with the Fedora Project GPG key.  More details on the
-GPG keys used by the Fedora Project can be found at
-https://fedoraproject.org/keys
+This update can be installed with the following console command:
+%(yum_repository)s
+  [M:command] > package update %(name)s
 --------------------------------------------------------------------------------
 """
 
-fedora_epel_errata_template = u"""\
---------------------------------------------------------------------------------
-Fedora EPEL%(testing)s Update Notification
-%(updateid)s
-%(date)s
---------------------------------------------------------------------------------
-
-Name        : %(name)s
-Product     : %(product)s
-Version     : %(version)s
-Release     : %(release)s
-URL         : %(url)s
-Summary     : %(summary)s
-Description :
-%(description)s
-
---------------------------------------------------------------------------------
-%(notes)s%(changelog)s%(references)s
-This update can be installed with the "yum" update programs.  Use
-su -c 'yum%(yum_repository)s update %(name)s' at the command line.
-For more information, refer to "Managing Software with yum",
-available at http://docs.fedoraproject.org/yum/.
-
-All packages are signed with the Fedora EPEL GPG key.  More details on the
-GPG keys used by the Fedora Project can be found at
-https://fedoraproject.org/keys
---------------------------------------------------------------------------------
-"""
+nbrs_nonfree_errata_template = nbrs_free_errata_template
 
 maillist_template = u"""\
 ================================================================================
@@ -337,7 +305,7 @@ maillist_template = u"""\
 """
 
 
-def get_template(update, use_template='fedora_errata_template'):
+def get_template(update, use_template='nbrs_free_errata_template'):
     """
     Build the update notice for a given update.
     @param use_template: the template to generate this notice with
@@ -357,10 +325,10 @@ def get_template(update, use_template='fedora_errata_template'):
         info['url']     = h[rpm.RPMTAG_URL]
         if update.status == 'testing':
             info['testing'] = ' Test'
-            info['yum_repository'] = ' --enablerepo=updates-testing'
+            info['yum_repository'] = '  [M:command] > config system device release testing'
         else:
             info['testing'] = ''
-            info['yum_repository'] = ''
+            info['yum_repository'] = '  [M:command] > config system device release current'
 
         info['subject'] = u"%s%s%s Update: %s" % (
                 update.type == 'security' and '[SECURITY] ' or '',
