@@ -636,7 +636,7 @@ class MashTask(Thread):
     def mash(self):
         t0 = time.time()
         self.mashing = True
-        self.update_comps()
+#        self.update_comps()
         # {'f9-updates': '/mnt/koji/mash/updates/f9-updates-080905.0057',}
         finished_repos = dict([('-'.join(basename(repo).split('-')[:-1]), repo)
                                for repo in self.composed_repos])
