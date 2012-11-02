@@ -653,7 +653,7 @@ class MashTask(Thread):
                            time.strftime("%y%m%d.%H%M"))
             self.mashed_repos[repo] = mashdir
             comps = join(config.get('comps_dir'), 'comps-%s.xml' %
-                         repo.split('-')[0])
+                         repo.split('-testing')[0])
             updatepath = join(config.get('mashed_dir'), repo)
             mashcmd = self.cmd % (mashdir, comps) + '-p %s ' % updatepath + repo
             log.info("Running `%s`" % mashcmd)
