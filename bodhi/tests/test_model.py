@@ -61,6 +61,7 @@ class TestPackageUpdate(testutil.DBTest):
                                submitter='foo@bar.com',
                                status='testing',
                                notes='foobar',
+                               stable_karma=3,
                                type='security')
         build = get_build(name)
         update.addPackageBuild(build)
