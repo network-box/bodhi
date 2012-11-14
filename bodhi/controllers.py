@@ -424,9 +424,7 @@ class Root(controllers.RootController):
             for up in updates:
                 can_modify = False
                 if not identity.current.anonymous:
-                    people, groups = get_pkg_pushers(up.builds[0].package.name,
-                            up.release.id_prefix.capitalize(),
-                            up.release.get_version())
+                    people, groups = get_pkg_pushers(up.builds[0].package.name)
                     if (identity.current.user_name in people[0]):
                         can_modify = True
                 dict_up = up.__json__()
@@ -689,20 +687,14 @@ class Root(controllers.RootController):
                 raise InvalidUpdateException(params)
             try:
                 # Grab a list of committers.
-                pkgdb_args = {
-                        'collectionName': 'Fedora',
-                        'collectionVersion': 'devel',
-                }
                 tags = buildinfo[build]['tags']
                 for release in Release.select():
                     if release.candidate_tag in tags or \
                        release.testing_tag in tags:
-                        pkgdb_args['collectionName'] = release.collection_name
-                        pkgdb_args['collectionVersion'] = str(release.get_version())
                         buildinfo[build]['release'] = release
                         break
 
-                people, groups = get_pkg_pushers(pkg, **pkgdb_args)
+                people, groups = get_pkg_pushers(pkg)
                 people = people[0] # we only care about committers, not watchers
                 buildinfo[build]['people'] = people
             except urllib2.URLError:
@@ -726,6 +718,11 @@ class Root(controllers.RootController):
                 flash_log("%s does not have commit access to %s" % (
                           identity.current.user_name, pkg))
                 raise InvalidUpdateException(params)
+
+            elif not identity.current.user_name in people:
+               # Ensure the submitter ends up in our committers cache
+               people.append(identity.current.user_name)
+               buildinfo[build]['people'] = people
 
         # If we're editing an update, unpush it first so we can assume all
         # of the builds are tagged as update candidates
