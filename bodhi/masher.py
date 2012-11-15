@@ -195,7 +195,7 @@ class MashTask(Thread):
             up = self.updates.pop()
             self.updates.add(up)
             # eg: MASHING-FEDORA, MASHING-FEDORA-EPEL
-            self.mash_lock_id = up.release.id_prefix
+            self.mash_lock_id = up.release.collection_name.upper().replace(" ", "-")
         else:
             self.mash_lock_id = 'UNKNOWN'
         self.koji = buildsys.get_session()

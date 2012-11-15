@@ -44,7 +44,7 @@ def clean_repo():
     repos = config.get('mashed_dir')
     mash_locks = set()
     for release in Release.select():
-        lock = join(repos, 'MASHING-%s' % release.id_prefix)
+        lock = join(repos, 'MASHING-%s' % release.collection_name.upper().replace(" ", "-"))
         mash_locks.add(lock)
         if exists(lock):
             log.info("Mash in progress.  Aborting clean_repo job")
