@@ -12,7 +12,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-from tgcaptcha import CaptchaField
 from turbogears import validators, config
 from turbogears.widgets import (Form, TextField, SubmitButton, TextArea,
                                 AutoCompleteField, SingleSelectField, CheckBox,
@@ -37,21 +36,7 @@ class CommentForm(Form):
 class CommentCaptchaForm(Form):
     template = "bodhi.templates.captchacommentform"
     submit_text = "Add Comment"
-    fields = [
-            TextArea(name='text', label='',
-                     validator=validators.All(
-                         validators.NotEmpty(),
-                         validators.UnicodeString()),
-                     rows=3, cols=40),
-            HiddenField(name='title',
-                        validator=validators.All(
-                            validators.NotEmpty(),
-                            validators.UnicodeString())),
-            TextField(name='author', label='Author',
-                      default='E-Mail Address',
-                      validator=validators.Email()),
-            CaptchaField(name='captcha', label='Enter the code shown')
-    ]
+    fields = []
 
 class SearchForm(Form):
     template = "bodhi.templates.searchform"

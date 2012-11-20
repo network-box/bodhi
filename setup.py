@@ -165,7 +165,6 @@ setup(
         "TurboGears >= 1.0, < 1.5",
         "TurboMail",
         "TurboFlot",
-        "TGCaptcha",
         "SQLObject",
         "psycopg2",
         "python_fedora",
