@@ -300,15 +300,15 @@ def schedule():
         scheduler.add_interval_task(action=cache_release_data,
                                     taskname='Cache release data',
                                     initialdelay=0,
-                                    interval=43200)
+                                    interval=3600)
 
     # If we're the masher, then handle the costly metric regenration
     if not config.get('masher') and 'refresh_metrics' in jobs:
         log.debug("Scheduling refresh_metrics job")
         scheduler.add_interval_task(action=refresh_metrics,
                                     taskname='Refresh our metrics',
-                                    initialdelay=7200,
-                                    interval=86400)
+                                    initialdelay=600,
+                                    interval=3600)
 
     # Approve updates that have been in testing for a certain amount of time
     if 'approve_testing_updates' in jobs:
