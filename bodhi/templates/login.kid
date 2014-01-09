@@ -14,7 +14,7 @@
     <div class="padded">
         <h1>Network Box Update System</h1>
         <p>${message}</p>
-        <p>Hint: Use your Network Box username, not your e-mail address.</p> 
+        <p>Hint: Use your Network Box SSO username.</p>
     </div>
     <form action="${previous_url}" method="POST" name="login">
         <table class="login">
@@ -44,6 +44,5 @@
         <input py:for="name,value in original_parameters.items()"
             type="hidden" name="${name}" value="${value}"/>
     </form>
-    <p class="padded">Forgot your password? Reset it in the <a href="https://admin.fedoraproject.org/accounts/user/resetpass">Fedora Accounts System</a>.</p>
 </body>
 </html>
