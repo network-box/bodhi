@@ -1755,7 +1755,6 @@ class TestControllers(testutil.DBTest):
         testutil.capture_log(["bodhi.util", "bodhi.controllers", "bodhi.model"])
         self.save_update(params, session)
         log = testutil.get_log()
-        assert "Forcing critical path update into testing" in log, log
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
 
@@ -1836,7 +1835,6 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                 method='POST', headers=session)
         log = testutil.get_log()
-        assert "Forcing critical path update into testing" in log
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
 
@@ -1862,7 +1860,6 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
         log = testutil.get_log()
-        assert "Forcing critical path update into testing" in log, log
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing'
 
@@ -2027,7 +2024,8 @@ class TestControllers(testutil.DBTest):
 
         # Have releng try again, and ensure it can be pushed to stable
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' %
-                                params['builds'], method='POST', headers=login('otherguy'))
+                                params['builds'], method='POST',
+                                headers=login('otherguy', group='proventesters'))
         update = PackageUpdate.byTitle(params['builds'])
         print update.stable_karma, update.unstable_karma
         assert update.request == 'stable', update.request
@@ -2118,7 +2116,8 @@ class TestControllers(testutil.DBTest):
         # Have releng try again, and ensure it can be pushed to stable
         #testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' %
-                                params['builds'], method='POST', headers=login('otherguy'))
+                                params['builds'], method='POST',
+                                headers=login('otherguy', group='proventesters'))
         update = PackageUpdate.byTitle(params['builds'])
         print update.stable_karma, update.unstable_karma
 
@@ -2242,7 +2241,7 @@ class TestControllers(testutil.DBTest):
         #testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
         testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' %
                                 params['builds'], method='POST',
-                                headers=login(username='bob'))
+                                headers=login(username='bob', group='proventesters'))
 
         update = PackageUpdate.byTitle(params['builds'])
         assert update.critpath
@@ -2251,9 +2250,9 @@ class TestControllers(testutil.DBTest):
         assert len(update.comments) == 4, update.comments
         assert update.comments[-1].author == 'bodhi', update.comments
         assert update.comments[-1].text == config.get('stablekarma_comment')
-        assert update.comments[1].author == 'bob', update.comments
+        assert update.comments[1].author == 'bob (proventesters)', update.comments
         assert update.comments[-2].author == 'bodhi', update.comments
-        assert update.comments[-2].text == 'Critical path update approved'
+        assert update.comments[-2].text == 'Update approved'
 
     def test_critpath_request_complete(self):
         """
@@ -2319,7 +2318,6 @@ class TestControllers(testutil.DBTest):
         assert update.request == 'testing', update.request
 
         assert not update.critpath_approved
-        assert not update.meets_testing_requirements
 
         # Time travel
         update.pushed = True
@@ -2329,6 +2327,12 @@ class TestControllers(testutil.DBTest):
         update.comments[-1].timestamp -= timedelta(days=14)
 
         assert update.meets_testing_requirements
+        assert not update.critpath_approved
+
+        # Give some positive karma by proventesters
+        testutil.create_request('/updates/comment?text=foobar&title=%s&karma=1' %
+                            params['builds'], method='POST',
+                            headers=login('someguy', group='proventesters'))
         assert update.critpath_approved
 
         # Ensure it can now be pushed
@@ -2455,7 +2459,7 @@ class TestControllers(testutil.DBTest):
                                 method='GET', headers=developer)
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 2
-        assert update.request == 'stable'
+        assert update.request == 'testing', update.request
 
     def test_created_since(self):
         session = login()
@@ -2990,11 +2994,6 @@ class TestControllers(testutil.DBTest):
         # Run the approve_testing_updates job, which should approve this update
         approve_testing_updates()
 
-        # assert approval comment in comments
-        up = PackageUpdate.byTitle(params['builds'])
-        assert len(up.comments) == 3
-        assert up.comments[-1].text == 'This update has reached 7 days in testing and can be pushed to stable now if the maintainer wishes'
-
         # ensure it's not auto pushed to testing
         assert up.status == 'testing'
         assert not up.request
@@ -3003,8 +3002,8 @@ class TestControllers(testutil.DBTest):
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
         up = PackageUpdate.byTitle(params['builds'])
-        assert up.request == 'stable'
-        assert up.comments[-1].text == u'This update has been submitted for stable by guest. '
+        assert up.request == None, up.request
+        assert up.status == 'testing'
 
     def test_push_noncritpath_on_critpath_reqs(self):
         """
@@ -3040,16 +3039,16 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 1
         assert update.request != 'stable'
-        assert len(update.comments) == 2
+        assert len(update.comments) == 3
         assert not update.critpath
-        assert not update.critpath_approved
+        assert update.critpath_approved
         assert update.num_admin_approvals == 1
 
         # try to push, and fail
         testutil.create_request('/updates/request/stable/%s' % params['builds'],
                                method='POST', headers=session)
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request != 'stable'
+        assert update.request == 'stable'
 
         # normal user +1
         testutil.create_request('/updates/comment?text=bizbaz&title=%s&karma=1' %
@@ -3057,7 +3056,7 @@ class TestControllers(testutil.DBTest):
                                 headers=login())
         update = PackageUpdate.byTitle(params['builds'])
         assert update.karma == 2, update.karma
-        assert update.request != 'stable'
+        assert update.request == 'stable'
         assert update.num_admin_approvals == 1
 
         # currently: try to push fail... eventually, succeed
@@ -3151,7 +3150,7 @@ class TestControllers(testutil.DBTest):
                                method='POST', headers=session)
         log = testutil.get_log()
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'stable', log
+        assert update.request == 'testing', log
 
     def test_replace_build_with_newer(self):
         session = login()
@@ -3293,7 +3292,7 @@ class TestControllers(testutil.DBTest):
         update = PackageUpdate.byTitle(params['builds'])
         assert update.request == 'testing', update.request
 
-        update.comments[-3].timestamp -= timedelta(days=1)
+        update.comments[-2].timestamp -= timedelta(days=1)
         assert update.days_in_testing == 14, update.days_in_testing
 
         testutil.capture_log(['bodhi.controllers', 'bodhi.util', 'bodhi.model'])
@@ -3301,7 +3300,7 @@ class TestControllers(testutil.DBTest):
                                method='POST', headers=session)
         log = testutil.get_log()
         update = PackageUpdate.byTitle(params['builds'])
-        assert update.request == 'stable', log
+        assert update.request == 'testing', log
 
     def test_comment_by_updateid(self):
         """ Ensure we can comment on updates using the updateid """
