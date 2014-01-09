@@ -91,12 +91,12 @@ class DevBuildsys(Buildsystem):
         for token in release_tokens:
             if token.startswith("fc"):
                 dist = token
-                tag = "dist-f%s-updates-testing" % token.replace("fc", "")
+                tag = "dist-f%s-testing" % token.replace("fc", "")
                 break
 
             if token.startswith("el"):
                 dist = token
-                tag = "dist-%sE-epel-testing-candidate" % token.replace("el", "")
+                tag = "dist-%sE-epel-candidate" % token.replace("el", "")
                 break
 
         else:
@@ -149,26 +149,26 @@ class DevBuildsys(Buildsystem):
     def listTags(self, build, *args, **kw):
         if 'fc7' in build:
             return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': 'dist-fc7-updates-candidate', 'perm': None, 'perm_id': None},
+                     'name': 'dist-fc7-candidates', 'perm': None, 'perm_id': None},
                      {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                      'name': 'dist-fc7-updates-testing', 'perm': None, 'perm_id': None},
+                      'name': 'dist-fc7-testing', 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                      'name': 'dist-fc7', 'perm': None, 'perm_id': None}]
         elif 'el5' in build:
             return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
+                     'name': 'dist-5E-epel-candidates', 'perm': None, 'perm_id': None},
                      {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                      'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
+                      'name': 'dist-5E-epel-candidates', 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                      'name': 'dist-5E-epel', 'perm': None, 'perm_id': None}]
         else:
             release = build.split('.')[-1].replace('fc', 'f')
             return [{'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                     'name': 'dist-%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
+                     'name': 'dist-%s-candidates' % release, 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                      'name': 'dist-%s' % release, 'perm': None, 'perm_id': None},
                     {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                     'name': 'dist-%s-updates-testing' % release, 'perm': None, 'perm_id': None}]
+                     'name': 'dist-%s-testing' % release, 'perm': None, 'perm_id': None}]
 
     def listTagged(self, tag, *args, **kw):
         builds = []

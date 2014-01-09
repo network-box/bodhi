@@ -366,13 +366,13 @@ class TestPackageUpdate(testutil.DBTest):
     def test_build_tag(self):
         update = self.get_update()
         update.status = 'pending'
-        assert update.get_build_tag() == "%s-updates-candidate" % update.release.dist_tag
+        assert update.get_build_tag() == "%s-candidates" % update.release.dist_tag
         update.status = 'testing'
-        assert update.get_build_tag() == "%s-updates-testing" % update.release.dist_tag
+        assert update.get_build_tag() == "%s-testing" % update.release.dist_tag
         update.status = 'stable'
-        assert update.get_build_tag() == "%s-updates" % update.release.dist_tag
+        assert update.get_build_tag() == "%s" % update.release.dist_tag
         update.status = 'obsolete'
-        assert update.get_build_tag() == "%s-updates-candidate" % update.release.dist_tag
+        assert update.get_build_tag() == "%s-candidates" % update.release.dist_tag
 
     def test_update_bugs(self):
         update = self.get_update()
@@ -543,15 +543,15 @@ class TestPackageUpdate(testutil.DBTest):
 
     def test_pending_tag_property(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
-        assert update.release.candidate_tag == 'dist-fc7-updates-candidate'
+        assert update.release.candidate_tag == 'dist-fc7-candidates'
 
     def test_testing_tag_property(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
-        assert update.release.testing_tag == 'dist-fc7-updates-testing'
+        assert update.release.testing_tag == 'dist-fc7-testing'
 
     def test_stable_tag_property(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
-        assert update.release.stable_tag == 'dist-fc7-updates'
+        assert update.release.stable_tag == 'dist-fc7'
 
     def test_stable_tag_property_for_pending_release(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
@@ -561,12 +561,12 @@ class TestPackageUpdate(testutil.DBTest):
     def test_testing_tag_property_for_pending_release(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
         update.release.locked = True
-        assert update.release.testing_tag == 'dist-fc7-updates-testing'
+        assert update.release.testing_tag == 'dist-fc7-testing'
 
     def test_pending_tag_property_for_pending_release(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.fc7')
         update.release.locked = True
-        assert update.release.candidate_tag == 'dist-fc7-updates-candidate'
+        assert update.release.candidate_tag == 'dist-fc7-candidates'
 
     def _get_epel_release(self):
         rel = Release.select(Release.q.name=='EL5')
@@ -580,7 +580,7 @@ class TestPackageUpdate(testutil.DBTest):
     def test_epel_pending_tag_property(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.el5')
         update.release = self._get_epel_release()
-        assert update.release.candidate_tag == 'dist-5E-epel-testing-candidate'
+        assert update.release.candidate_tag == 'dist-5E-epel-candidates'
 
     def test_epel_testing_tag_property(self):
         update = self.get_update(name='TurboGears-1.0.2.2-2.el5')
