@@ -919,7 +919,7 @@ class MashTask(Thread):
         mashdir = config.get('mashed_dir')
         repo = release.stable_repo
         master_repomd = config.get('%s_master_repomd' %
-                                   release.id_prefix.lower().replace('-', '_'))
+                                   release.collection_name.lower().replace(' ', '_'))
         repomd = join(mashdir, repo, 'i386', 'repodata', 'repomd.xml')
         if not exists(repomd):
             log.error("Cannot find local repomd: %s" % repomd)
