@@ -28,7 +28,7 @@ class BodhiTestClient(BodhiClient):
     """
     def __init__(self, *args, **kw):
         BodhiClient.__init__(self, *args, **kw)
-        self.cookie = login()
+        self.cookie = login(group='provenpackager')
 
     def login(self, *args, **kw):
         pass

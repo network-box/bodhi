@@ -38,11 +38,13 @@ def login(username='guest', display_name='guest', group=None):
         guest = User(user_name=username, display_name=display_name,
                      password='guest')
     if group:
-        try:
-            group = Group.by_group_name(group)
-        except SQLObjectNotFound:
-            group = Group(group_name=group, display_name=group)
-        guest.addGroup(group)
+        groupnames = group.split()
+        for g in groupnames:
+            try:
+                group = Group.by_group_name(g)
+            except SQLObjectNotFound:
+                group = Group(group_name=g, display_name=g)
+            guest.addGroup(group)
     testutil.create_request('/updates/login?tg_format=json&login=Login&forward_url=/updates/&user_name=%s&password=guest' % username, method='POST')
     assert cherrypy.response.status == '200 OK', cherrypy.response.body[0]
     cookies = filter(lambda x: x[0] == 'Set-Cookie',
@@ -96,7 +98,7 @@ class TestControllers(testutil.DBTest):
         assert "You must provide your credentials before accessing this resource." in cherrypy.response.body[0], cherrypy.response.body
 
     def test_new_update(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -120,7 +122,7 @@ class TestControllers(testutil.DBTest):
         assert update.unstable_karma == -3
 
     def test_multibuild_update(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
@@ -143,7 +145,7 @@ class TestControllers(testutil.DBTest):
             assert int(bug) in map(lambda x: x.bz_id, update.bugs)
 
     def test_bad_build(self):
-        session = login()
+        session = login(group='provenpackager')
         params = {
             'builds'  : 'foobar',
             'release' : 'Fedora 7',
@@ -156,7 +158,7 @@ class TestControllers(testutil.DBTest):
         assert "Invalid package name; must be in package-version-release format" in cherrypy.response.body[0]
 
     def test_bad_type(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -171,7 +173,7 @@ class TestControllers(testutil.DBTest):
         assert "Value must be one of: bugfix; enhancement; security; newpackage (not u'REGRESSION!')" in cherrypy.response.body[0]
 
     def test_user_notes_encoding(self):
-        session = login(username='guest', display_name='foo\xc3\xa9bar')
+        session = login(username='guest', display_name='foo\xc3\xa9bar', group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -189,7 +191,7 @@ class TestControllers(testutil.DBTest):
         assert update.notes == unicode(params['notes'], 'utf8')
 
     def test_bugs_update(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -212,7 +214,7 @@ class TestControllers(testutil.DBTest):
         assert update.type == params['type_']
 
     def test_comment(self):
-        session = login()
+        session = login(group='provenpackager')
         other_session = login('otherguy', 'otherguy')
         create_release()
         params = {
@@ -273,7 +275,7 @@ class TestControllers(testutil.DBTest):
         assert update.get_comments()[1].text == 'foobar'
 
     def test_duplicate_titles(self):
-        session = login()
+        session = login(group='provenpackager')
         f8 = create_release('8', dist='dist-f')
         params = {
             'builds'  : 'TurboGears-1.0.4.4-1.fc8',
@@ -291,7 +293,7 @@ class TestControllers(testutil.DBTest):
         assert '<a href="/updates/TurboGears-1.0.4.4-1.fc8">TurboGears-1.0.4.4-1.fc8</a> update already exists!' in log
 
     def test_duplicate_multibuild_same_release(self):
-        session = login()
+        session = login(group='provenpackager')
         f7 = create_release('7')
         params = {
             'builds'  : 'TurboGears-1.0.4.4-1.fc7 nethack-3.4.3-17.fc7',
@@ -313,7 +315,7 @@ class TestControllers(testutil.DBTest):
         assert '<a href="/updates/TurboGears-1.0.4.4-1.fc7">TurboGears-1.0.4.4-1.fc7</a> update already exists!' in log
 
     def test_duplicate_multibuild_different_release(self):
-        session = login()
+        session = login(group='provenpackager')
         f7 = create_release('7')
         f8 = create_release('8', dist='dist-f')
         params = {
@@ -345,7 +347,7 @@ class TestControllers(testutil.DBTest):
         assert '<a href="/updates/TurboGears-1.0.4.4-1.fc7">TurboGears-1.0.4.4-1.fc7</a> update already exists!' in log
 
     def test_multi_release(self):
-        session = login()
+        session = login(group='provenpackager')
         f7 = create_release()
         f8 = create_release('8', dist='dist-f')
         print f8
@@ -377,7 +379,7 @@ class TestControllers(testutil.DBTest):
 
     def test_add_older_build_to_update(self):
         """ Try adding a newer build an update (#385) """
-        session = login()
+        session = login(group='provenpackager')
         f7 = create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
@@ -409,7 +411,7 @@ class TestControllers(testutil.DBTest):
 
     def test_add_newer_build_to_update(self):
         """ Try adding a newer build an update (#385) """
-        session = login()
+        session = login(group='provenpackager')
         f7 = create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
@@ -443,7 +445,7 @@ class TestControllers(testutil.DBTest):
         """
         Try adding a build for a different release to an update (#251)
         """
-        session = login()
+        session = login(group='provenpackager')
         f7 = create_release()
         f8 = create_release('8', dist='dist-f')
         params = {
@@ -483,7 +485,7 @@ class TestControllers(testutil.DBTest):
         Try removing a build and adding a build for a different release to an
         update (#251)
         """
-        session = login()
+        session = login(group='provenpackager')
         f7 = create_release()
         f8 = create_release('8', dist='dist-f')
         orig_params = {
@@ -535,7 +537,7 @@ class TestControllers(testutil.DBTest):
         assert len(b.updates[0].builds) == 1
 
     def test_edit(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -631,7 +633,7 @@ class TestControllers(testutil.DBTest):
         """
         Make sure we can edit the notes without having the update go back to pending
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -667,7 +669,7 @@ class TestControllers(testutil.DBTest):
 
     def test_edit_builds(self):
         """ Make sure we can edit builds in an update """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -703,7 +705,7 @@ class TestControllers(testutil.DBTest):
 
     def test_edit_testing_update_headed_to_stable(self):
         """ Make sure we cannot edit updates that are headed to stable"""
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -769,7 +771,7 @@ class TestControllers(testutil.DBTest):
 
     def test_edit_pending_update_headed_to_testing(self):
         """ Make sure we can edit updates that are headed to testing """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -834,7 +836,7 @@ class TestControllers(testutil.DBTest):
         assert update.notes == 'bar'
 
     def test_delete(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7,python-sqlobject-1.6.3-13.fc7',
@@ -873,7 +875,7 @@ class TestControllers(testutil.DBTest):
                 pass
 
     def test_requests(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -904,7 +906,7 @@ class TestControllers(testutil.DBTest):
         assert update.request == 'testing'
 
     def test_unauthorized_request(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -923,7 +925,7 @@ class TestControllers(testutil.DBTest):
         assert "You must provide your credentials before accessing this resource." in cherrypy.response.body[0]
 
     def test_invalid_request(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -1057,7 +1059,7 @@ class TestControllers(testutil.DBTest):
         assert "This resource resides temporarily" in cherrypy.response.body[0], cherrypy.response.body[0]
 
     def test_obsoleting(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -1099,7 +1101,7 @@ class TestControllers(testutil.DBTest):
     def test_obsoleting_multibuild_update(self):
         """ Ensure that a new update cannot obsolete an older update that
         contains this new build along with others """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlalchemy-0.5-0-1.fc7',
@@ -1138,7 +1140,7 @@ class TestControllers(testutil.DBTest):
     def test_obsoleting_update_with_different_packages(self):
         """ Ensure that a new update cannot obsolete an older update that
         contains a different package """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlalchemy-0.5.0-1.fc7 nethack-1.0-1.fc7',
@@ -1184,7 +1186,7 @@ class TestControllers(testutil.DBTest):
         that bodhi provides.  This method is utilized by both the web interface
         and the command-line client.
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -1239,7 +1241,7 @@ class TestControllers(testutil.DBTest):
         Verify that updates are automatically submitted to testing, and that
         this actually happens
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
@@ -1294,7 +1296,7 @@ class TestControllers(testutil.DBTest):
         Make sure that security updates require approval from the security
         response team before being pushed to stable
         """
-        session = login(group='security_respons')
+        session = login(group='security_respons provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
@@ -1319,7 +1321,7 @@ class TestControllers(testutil.DBTest):
         """
         Make sure we disallow pushing directly to stable after security approval
         """
-        session = login(group='security_respons')
+        session = login(group='security_respons provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
@@ -1348,7 +1350,7 @@ class TestControllers(testutil.DBTest):
         Make sure that the list of committers for this package is getting
         updated in our db for each submission.
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
@@ -1363,7 +1365,7 @@ class TestControllers(testutil.DBTest):
         assert 'guest' in update.builds[0].package.committers
 
     def test_karma_thresholds(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
@@ -1418,7 +1420,7 @@ class TestControllers(testutil.DBTest):
         assert update.unstable_karma == -7, update.unstable_karma
 
     def test_bad_karma_thresholds(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
@@ -1442,7 +1444,7 @@ class TestControllers(testutil.DBTest):
 
     def test_anonymous_captcha(self):
         """ Make sure our captcha does its job """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
@@ -1469,7 +1471,7 @@ class TestControllers(testutil.DBTest):
         assert 'You must provide your credentials before accessing this resource.' in cherrypy.response.body[0]
 
     def test_newpackage_update(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
@@ -1545,7 +1547,7 @@ class TestControllers(testutil.DBTest):
 
     def test_request_comments(self):
         """ Make sure that setting requests also adds comments """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = { 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
                 'release' : 'Fedora 7',
@@ -1598,7 +1600,7 @@ class TestControllers(testutil.DBTest):
 
     def test_edit_obsoletion(self):
         """ Make sure that an update cannot obsolete itself during edit """
-        session = login()
+        session = login(group='provenpackager')
         create_release(num='9', dist='dist-f')
         create_release(num='8', dist='dist-f')
         params = {
@@ -1630,7 +1632,7 @@ class TestControllers(testutil.DBTest):
         assert PackageBuild.select().count() == len(params['builds'].split(','))
 
     def test_revoke_request(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release(num='8', dist='dist-f')
         params = {
                 'builds'  : u'TurboGears-1.0.7-1.fc8',
@@ -1648,7 +1650,7 @@ class TestControllers(testutil.DBTest):
         assert update.request == None
 
     def test_unicode_fail(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release(num='8', dist='dist-f')
         params = {'stable_karma': 3,
                 'builds': 'pidgin-libnotify-0.14-1.fc8',
@@ -1666,7 +1668,7 @@ class TestControllers(testutil.DBTest):
         assert update
 
     def test_get_updates_from_builds(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -1694,7 +1696,7 @@ class TestControllers(testutil.DBTest):
         assert data['TurboGears-1.0.2.2-2.fc7']['notes'] == 'foobar'
 
     def test_updating_build_during_edit(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-2.6.23.1-21.fc7',
@@ -1740,7 +1742,7 @@ class TestControllers(testutil.DBTest):
         Ensure that we cannot push an untested critpath update directly to
         stable.
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -1759,7 +1761,7 @@ class TestControllers(testutil.DBTest):
         assert update.request == 'testing'
 
     def test_critpath_actions_in_normal_release(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -1792,7 +1794,7 @@ class TestControllers(testutil.DBTest):
         #assert update.karma == 1, update.karma
 
     def test_non_critpath_actions_in_normal_release(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'nethack-2.6.31-1.fc7',
@@ -1814,7 +1816,7 @@ class TestControllers(testutil.DBTest):
         assert "Push to Stable" in cherrypy.response.body[0], cherrypy.response.body[0]
 
     def test_push_critpath_to_frozen_release(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -1839,7 +1841,7 @@ class TestControllers(testutil.DBTest):
         assert update.request == 'testing'
 
     def test_push_critpath_to_frozen_release_and_request_stable_as_releng(self):
-        session = login(group='proventesters')
+        session = login(group='proventesters provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -1868,7 +1870,7 @@ class TestControllers(testutil.DBTest):
         Ensure devs can attempt to push critpath updates for pending releases
         to stable, but make sure that it can only go to testing.
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -1898,7 +1900,7 @@ class TestControllers(testutil.DBTest):
         Ensure that people can still disable karma automatism with critpath
         updates.
         """
-        releng = login(group='proventesters')
+        releng = login(group='proventesters provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -1965,7 +1967,7 @@ class TestControllers(testutil.DBTest):
         Ensure releng/qa can push critpath updates to stable for pending releases
         after 1 releng/qa karma, and 1 other karma
         """
-        releng = login(group='proventesters')
+        releng = login(group='proventesters provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2057,7 +2059,7 @@ class TestControllers(testutil.DBTest):
         it doesn't get pushed to stable automatically because it has yet to
         reach the stable_karma threshold.
         """
-        releng = login(group='proventesters')
+        releng = login(group='proventesters provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2144,7 +2146,7 @@ class TestControllers(testutil.DBTest):
         Ensure devs can *not* push critpath updates directly to stable
         for pending releases
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2173,7 +2175,7 @@ class TestControllers(testutil.DBTest):
         """
         Ensure non-critpath packages can still be pushed to stable as usual
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'nethack-2.6.31-1.fc7',
@@ -2205,7 +2207,7 @@ class TestControllers(testutil.DBTest):
         """
         Ensure admins can submit critpath updates for pending releases to stable.
         """
-        session = login(group='proventesters')
+        session = login(group='proventesters provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2259,7 +2261,7 @@ class TestControllers(testutil.DBTest):
         Ensure devs can *not* push critpath updates directly to stable
         for pending releases
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2283,7 +2285,7 @@ class TestControllers(testutil.DBTest):
         Ensure critpath updates can be pushed to stable after two weeks without
         any negative feedback.
         """
-        releng = login(group='proventesters')
+        releng = login(group='proventesters provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2351,7 +2353,7 @@ class TestControllers(testutil.DBTest):
         Ensure critpath updates cannot be pushed to stable after two weeks with
         negative feedback.
         """
-        releng = login(group='proventesters')
+        releng = login(group='proventesters provenpackager')
         create_release(locked=True)
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2403,7 +2405,7 @@ class TestControllers(testutil.DBTest):
         Ensure critpath updates can still go to stable without proventesters.
         https://fedorahosted.org/bodhi/ticket/653
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2462,7 +2464,7 @@ class TestControllers(testutil.DBTest):
         assert update.request == 'testing', update.request
 
     def test_created_since(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2512,7 +2514,7 @@ class TestControllers(testutil.DBTest):
         assert data['num_items'] == 0
 
     def test_modified_since(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2567,7 +2569,7 @@ class TestControllers(testutil.DBTest):
         assert data['num_items'] == 0
 
     def test_pushed_since(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2616,7 +2618,7 @@ class TestControllers(testutil.DBTest):
         assert data['num_items'] == 0
 
     def test_query_limit(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'kernel-2.6.31-1.fc7',
@@ -2658,7 +2660,7 @@ class TestControllers(testutil.DBTest):
         assert len(data['updates']) == 100, len(data['updates'])
 
     def test_add_bugs_to_update(self):
-        session = login()
+        session = login(group='provenpackager')
         f7 = create_release()
         params = {
             'builds'  : 'TurboGears-1.0.2.2-2.fc7 python-sqlobject-0.8.2-1.fc7',
@@ -2701,7 +2703,7 @@ class TestControllers(testutil.DBTest):
         assert 'flot' in cherrypy.response.body[0]
 
     def test_bullets(self):
-        session = login()
+        session = login(group='provenpackager')
         f7 = create_release()
         params = {
             'notes'   : '\xc2\xb7',
@@ -2735,7 +2737,7 @@ class TestControllers(testutil.DBTest):
         Ensure that a developer can give negative karma, and then proceed to
         later give positive karma.
         """
-        session = login()
+        session = login(group='provenpackager')
         other_session = login('otherguy')
         create_release()
         params = {
@@ -2793,7 +2795,7 @@ class TestControllers(testutil.DBTest):
         Ensure that a developer can give negative karma, and then proceed to
         later give positive karma.
         """
-        session = login()
+        session = login(group='provenpackager')
         other_session = login('otherguy')
         create_release()
         params = {
@@ -2826,7 +2828,7 @@ class TestControllers(testutil.DBTest):
         assert PackageUpdate.byTitle(params['builds']).karma == 1, PackageUpdate.byTitle(params['builds']).karma
 
     def test_suggest_reboot(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'         : 'TurboGears-1.0.8-1.fc7',
@@ -2863,7 +2865,7 @@ class TestControllers(testutil.DBTest):
         assert not PackageUpdate.byTitle(params['builds']).builds[0].package.suggest_reboot
 
     def test_push_critpath_to_EPEL(self):
-        session = login()
+        session = login(group='provenpackager')
         rel = Release(name='EL5', long_name='Fedora EPEL 5',
                       id_prefix='FEDORA-EPEL', dist_tag='dist-5E-epel')
         params = {
@@ -2885,7 +2887,7 @@ class TestControllers(testutil.DBTest):
         Ensure that bodhi disallows submitting an update with two versions
         of the same package (#264).
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'         : 'TurboGears-1.0.8-1.fc7,TurboGears-1.0.8-2.fc7',
@@ -2914,7 +2916,7 @@ class TestControllers(testutil.DBTest):
         Ensure that bodhi allows submitting an update with two versions of the
         same package to different releases.
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         create_release('8', dist='dist-f')
         params = {
@@ -2944,7 +2946,7 @@ class TestControllers(testutil.DBTest):
 
     def test_week_in_testing(self):
         from bodhi.jobs import approve_testing_updates
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
             'builds'         : 'TurboGears-1.0.8-1.fc7',
@@ -3010,7 +3012,7 @@ class TestControllers(testutil.DBTest):
         Make sure normal updates can meet the testing requirements after
         achieving critpath-level approval.
         """
-        session = login(username='admin', group='proventesters')
+        session = login(username='admin', group='proventesters provenpackager')
         create_release()
         f7 = Release.byName('F7')
         assert f7.mandatory_days_in_testing, f7.mandatory_days_in_testing
@@ -3070,7 +3072,7 @@ class TestControllers(testutil.DBTest):
         Make sure a batch of builds can't obsolete an update that only has a
         single build
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'nethack-2.6.31-1.fc7',
@@ -3114,7 +3116,7 @@ class TestControllers(testutil.DBTest):
         Try pushing an epel package to stable after 13 days in testing, which
         will fail, and then try after 14 days.
         """
-        session = login()
+        session = login(group='provenpackager')
         rel = Release(name='EL5', long_name='Fedora EPEL 5',
                       id_prefix='FEDORA-EPEL', dist_tag='dist-5E-epel')
         params = {
@@ -3153,7 +3155,7 @@ class TestControllers(testutil.DBTest):
         assert update.request == 'testing', log
 
     def test_replace_build_with_newer(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.8-1.fc7',
@@ -3197,7 +3199,7 @@ class TestControllers(testutil.DBTest):
         Ensure that we disallow editing an update and adding a build that is
         already a part of a different update. (#682)
         """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.8-1.fc7',
@@ -3264,7 +3266,7 @@ class TestControllers(testutil.DBTest):
         Try pushing an epel package to stable after 13 days in testing, which
         will fail, and then try after 14 days.
         """
-        session = login()
+        session = login(group='provenpackager')
         rel = Release(name='EL5', long_name='Fedora EPEL 5',
                       id_prefix='FEDORA-EPEL', dist_tag='dist-5E-epel')
         params = {
@@ -3304,7 +3306,7 @@ class TestControllers(testutil.DBTest):
 
     def test_comment_by_updateid(self):
         """ Ensure we can comment on updates using the updateid """
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'         : 'TurboGears-1.0.8-1.fc7',
@@ -3329,7 +3331,7 @@ class TestControllers(testutil.DBTest):
         assert update.comments[-1].text == 'foobar', update.comments
 
     def test_mandatory_notes(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -3345,7 +3347,7 @@ class TestControllers(testutil.DBTest):
         assert 'Error: You must supply details for this update' in logs
 
     def test_placeholder_notes(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -3361,7 +3363,7 @@ class TestControllers(testutil.DBTest):
         assert 'Error: You must supply details for this update' in logs
 
     def test_new_updateid_url(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -3379,7 +3381,7 @@ class TestControllers(testutil.DBTest):
         assert 'notes go here' in cherrypy.response.body[0]
 
     def test_sort_updates(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         updates = []
         for rev in range(1, 10)[::-1]:
@@ -3426,7 +3428,7 @@ class TestControllers(testutil.DBTest):
         assert len(sorted_updates) == 10, len(sorted_updates)
 
     def test_obsolete_unpushed_pending_update(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
@@ -3459,7 +3461,7 @@ class TestControllers(testutil.DBTest):
         assert update.status == 'obsolete', update.status
 
     def test_obsolete_currently_pushing_pending_update(self):
-        session = login()
+        session = login(group='provenpackager')
         create_release()
         params = {
                 'builds'  : 'TurboGears-1.0.2.2-2.fc7',
