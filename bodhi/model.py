@@ -499,55 +499,26 @@ class PackageUpdate(SQLObject):
                 flash_log('%s does not have a request to revoke' % self.title)
             return
 
-        # [No Frozen Rawhide] Disable pushing critical path updates for
-        # pending releases directly to stable.
-        if action == 'stable' and self.critpath:
-            if config.get('critpath.num_admin_approvals') is not None:
-                if not self.critpath_approved:
-                    notes.append('This critical path update has not '
-                                 'yet been approved for pushing to the stable '
-                                 'repository.  It must first reach a karma '
-                                 'of %d, consisting of %d positive karma from '
-                                 'proventesters, along with %d additional '
-                                 'karma from the community. Or, it must '
-                                 'spend %d days in testing without any '
-                                 'negative feedback' % (
-                        config.get('critpath.min_karma'),
-                        config.get('critpath.num_admin_approvals'),
-                        config.get('critpath.min_karma') -
-                        config.get('critpath.num_admin_approvals'),
-                        config.get('critpath.stable_after_days_without_negative_karma')))
-                    if self.status == 'testing':
-                        self.request = None
-                        flash_log('. '.join(notes))
-                        return
-                    else:
-                        log.info('Forcing critical path update into testing')
-                        action = 'testing'
-
         # Ensure this update meets the minimum testing requirements
         flash_notes = ''
-        if action == 'stable' and not self.critpath:
-            # Check if we've met the karma requirements
-            if (self.stable_karma != 0 and self.karma >= self.stable_karma) or \
-                    self.critpath_approved:
-                pass
+        # [NBRS - POLICY - NO_DIFFERENCE_FOR_CRITPATH]
+        if action == 'stable' and not self.critpath_approved:
+            # The update hasn't been tested properly yet
+            flash_notes = config.get('not_yet_tested_msg')
+
+            if self.status == 'testing':
+                # The update is in testing already, refuse pushing and make
+                # sure it isn't queued for push any more
+                self.request = None
+                flash_log(flash_notes)
+                return
+            elif self.request == 'testing':
+                # The update is queued for testing, refuse pushing
+                flash_log(flash_notes)
+                return
             else:
-                # If we haven't met the stable karma requirements, check if it has met
-                # the mandatory time-in-testing requirements
-                if self.release.mandatory_days_in_testing:
-                    if not self.met_testing_requirements and \
-                       not self.meets_testing_requirements:
-                        flash_notes = config.get('not_yet_tested_msg')
-                        if self.status == 'testing':
-                            self.request = None
-                            flash_log(flash_notes)
-                            return
-                        elif self.request == 'testing':
-                            flash_log(flash_notes)
-                            return
-                        else:
-                            action = 'testing'
+                # Force push the update to testing instead
+                action = 'testing'
 
         # Add the appropriate 'pending' koji tag to this update, so tools like
         # AutoQA can mash repositories of them for testing.
@@ -910,11 +881,14 @@ class PackageUpdate(SQLObject):
                 agent=identity.current.user_name
             ))
 
-        if self.critpath:
+        # [NBRS - POLICY - NO_DIFFERENCE_FOR_CRITPATH]
+        # Yes, this looks silly. But it's makes a much easier to maintain
+        # downstream patch
+        if self.critpath or not self.critpath:
             min_karma = config.get('critpath.min_karma')
             # If we weren't approved before, but are now...
             if not critpath_approved and self.critpath_approved:
-                self.comment('Critical path update approved', author='bodhi')
+                self.comment('Update approved', author='bodhi')
                 mail.send_admin('critpath_approved', self)
             # Karma automatism enabled
             if self.stable_karma != 0:
@@ -1165,21 +1139,14 @@ class PackageUpdate(SQLObject):
     def critpath_approved(self):
         """ Return whether or not this critpath update has been approved """
         # https://fedorahosted.org/bodhi/ticket/642
-        if self.meets_testing_requirements:
-            return True
+
+        # [NBRS - POLICY - NO_DIFFERENCE_FOR_CRITPATH]
+        # We handle both critpath and non critpath updates here, it just
+        # seemed easier this way.
         release_name = self.release.name.lower().replace('-', '')
-        status = config.get('%s.status' % release_name, None)
-        if status:
-            num_admin_approvals = config.get('%s.%s.critpath.num_admin_approvals' % (
-                    release_name, status), None)
-            min_karma = config.get('%s.%s.critpath.min_karma' % (
-                    release_name, status), None)
-            if num_admin_approvals is not None and min_karma:
-                return self.num_admin_approvals >= num_admin_approvals and \
-                        self.karma >= min_karma
-        return self.num_admin_approvals >= config.get(
-                'critpath.num_admin_approvals', 2) and \
-               self.karma >= config.get('critpath.min_karma', 2)
+        min_admin_approval = config.get('%s.num_admin_approvals'
+                                        % release_name, 1)
+        return self.num_admin_approvals >= min_admin_approval
 
     def people_to_notify(self):
         """ Return a list of people to notify when this update changes """
