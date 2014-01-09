@@ -124,7 +124,11 @@ class NewUpdateForm(Form):
                                                     'after installing this '
                                                     'update'}),
             CheckBox(name='autokarma', label='Enable karma automatism',
-                     default=True, validator=validators.StringBool(),
+                     # [NBRS - POLICY - NO_AUTOMATIC_STABLE_KARMA]
+                     # We do not want to allow an update to be pushed
+                     # automatically. Ever. This seems like the simplest way
+                     # to do that.
+                     default=False, validator=validators.StringBool(),
                      attrs={'onchange':
                          'if ($("#form_autokarma").attr("checked")) {'
                             '$("#form_stable_karma").attr("disabled", false);'
@@ -139,7 +143,11 @@ class NewUpdateForm(Form):
                              'automation based on user feedback',
             }),
             TextField('stable_karma', label='Threshold for pushing to stable',
-                      validator=validators.Int(), default='3',
+                      # [NBRS - POLICY - NO_AUTOMATIC_STABLE_KARMA]
+                      # We do not want to allow an update to be pushed
+                      # automatically. Ever. This seems like the simplest way
+                      # to do that.
+                      validator=validators.Int(), default='3000',
                       attrs={'title' : 'Stable Karma - The threshold for '
                              'automatically pushing this update to stable',
                              'size' : '1'}),

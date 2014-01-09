@@ -325,7 +325,10 @@ class PackageUpdate(SQLObject):
     nagged           = PickleCol(default=None) # { nagmail_name : datetime, ... }
     approved         = DateTimeCol(default=None)
 
-    stable_karma    = IntCol(default=3)
+    # [NBRS - POLICY - NO_AUTOMATIC_STABLE_KARMA]
+    # We do not want to allow an update to be pushed automatically. Ever.
+    # This seems like the simplest way to do that.
+    stable_karma    = IntCol(default=3000)
     unstable_karma  = IntCol(default=-3)
 
     # [NBRS] No idea why, but SQLObject or PostgreSQL seem to be escaping
