@@ -174,7 +174,7 @@ setup(
         "kitchen",
         "python-fedora",
         #"hashlib",
-        "fedmsg>=0.0.8",
+        #"fedmsg>=0.0.8",
         "decorator",
         "Pillow",
         # The following are not available as eggs so we can't uncomment them.
